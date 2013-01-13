@@ -6,7 +6,7 @@ import re
 from injector import inject
 
 from hal.listeners import TextListener
-from hal.plugin import PluginCollector
+from hal.plugin import PluginModuleCollector
 
 class Bot(object):
 	def __init__(self, name):
@@ -16,12 +16,20 @@ class Bot(object):
 		self._reload_plugins()
 		self.adapter.run()
 		
-	@inject(plugin_collector = PluginCollector)
-	def _reload_plugins(self, plugin_collector):
+	@inject(plugin_module_collector = PluginModuleCollector)
+	def _reload_plugins(self, plugin_module_collector):
 		self._listeners = []
-		plugins = plugin_collector.collect()
-		for plugin in plugins:
-			plugin(self)
+		self._commands_help = []
+		modules = plugin_module_collector.collect()
+		for m in modules:
+			m.plugin(self)
+			try:
+				commands = [c.strip() for c in m.__commands__.splitlines() if c.strip()]
+				self._commands_help.extend(commands)
+			except AttributeError:
+				pass
+
+		self._commands_help.sort()
 
 	def hear(self, regexp, callback = None):
 		if callback is None:
@@ -68,3 +76,7 @@ class Bot(object):
 
 	def reply(self, envelope, message):
 		self.adapter.reply(envelope, message)
+
+	@property
+	def commands_help(self):
+		return self._commands_help

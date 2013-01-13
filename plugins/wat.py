@@ -1,3 +1,7 @@
+__commands__ = '''
+	wat - provides link to random WAT image
+'''
+
 import requests
 
 def plugin(bot):

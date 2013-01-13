@@ -10,21 +10,21 @@ from injector import inject, Key, Module, provides, singleton
 from hal import PROJECT_ROOT
 
 PluginDirectories = Key('PluginDirectories')
-Plugins = Key('Plugins')
 
-class PluginCollector(object):
+class PluginModuleCollector(object):
 	@inject(directories = PluginDirectories)
 	def collect(self, directories):
-		plugins = []
+		modules = []
+
 		for directory in directories:
 			for name in listdir(directory):
 				full_name = join(directory, name)
 				if full_name.endswith('.py') and isfile(full_name):
-					module = load_source('irrelevant', full_name)
+					module = load_source(full_name.replace('/', ''), full_name)
 					if hasattr(module, 'plugin'):
-						plugins.append(module.plugin)
+						modules.append(module)
 
-		return plugins
+		return modules
 
 class PluginModule(Module):
 	@singleton
