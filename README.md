@@ -17,7 +17,7 @@ Our Jabber chat bot. It's modelled after GitHub's [Hubot](http://hubot.github.co
 
 1. Build the virtualenv (in projects directory):
 
-		make build_virtualenv	
+		make virtualenv
 	
 1. Run HAL
 
