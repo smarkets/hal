@@ -4,28 +4,18 @@ from __future__ import absolute_import, unicode_literals
 import re
 
 from injector import inject
-import xmpp
 
-from hal.jabber import ConnectionFactory, JabberConfiguration
-from hal.listener import TextListener
+from hal.listeners import TextListener
 from hal.plugin import PluginCollector
 
 class Bot(object):
-	@inject(connection_factory = ConnectionFactory, configuration = JabberConfiguration)
-	def __init__(self, connection_factory, configuration):
-		self._connection_factory = connection_factory
-		self.name = configuration.user
+	def __init__(self, name):
+		self.name = name
 
 	def run(self):
 		self._reload_plugins()
-
-		connection = self._connection_factory.create()
-		connection.RegisterHandler('message', self.handle_message)
-		connection.sendInitPresence()
-
-		while True:
-			connection.Process(1)
-
+		self.adapter.run()
+		
 	@inject(plugin_collector = PluginCollector)
 	def _reload_plugins(self, plugin_collector):
 		self._listeners = []
@@ -69,14 +59,12 @@ class Bot(object):
 
 		return pattern, flags
 
-	def handle_message(self, connection, message):
-		text = message.getBody()
-		if text:
-			sender = message.getFrom()
-			sender.setResource('')
+	def receive(self, message):
+		for listener in self._listeners:
+			listener(message)
 
-			for listener in self._listeners:
-				response = listener(text)
-				if response:
-					connection.send(response)
-					connection.send(xmpp.Message(sender, response, typ = 'groupchat'))
+	def send(self, envelope, message):
+		self.adapter.send(envelope, message)
+
+	def reply(self, envelope, message):
+		self.adapter.reply(envelope, message)

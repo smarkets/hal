@@ -3,34 +3,31 @@ from __future__ import absolute_import, unicode_literals
 
 import re
 
-class Listener(object):
-	def __init__(self, bot):
-		self.bot = bot
+from hal.messages import TextMessage
+from hal.response import Response
 
-	def match(self, message):
-		raise NotImplementedError
+class Listener(object):
+	def __init__(self, bot, matcher, callback):
+		self.bot = bot
+		self.matcher = matcher
+		if hasattr(callback, '__call__'):
+			self.callback = callback
+		else:
+			self.callback = lambda *args, **kwargs: callback
 
 	def __call__(self, message):
-		result = None
-
-		match = self.match(message)
+		match = self.matcher(message)
 
 		if match:
-			result = self.handle(message, match)
-
-		return result
-
-	def handle(self, message, match):
-		pass
+			response = Response(self.bot, message, match)
+			result = self.callback(response)
+			if result:
+				response.send(result)
 
 class TextListener(Listener):
-	regexp = None
+	def __init__(self, bot, regexp, callback):
+		def match(message):
+			if isinstance(message, TextMessage):
+				return regexp.match(message.text)
 
-	def match(self, message):
-		if hasattr(self.regexp, 'match'):
-			pattern, flags = self.regexp.pattern, self.regexp.flags
-		else:
-			pattern, flags = self.regexp, 0
-
-		new_regexp = re.compile(pattern, flags)
-		return new_regexp.match(message)
+		super(TextListener, self).__init__(bot, match, callback)
