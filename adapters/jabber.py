@@ -3,7 +3,7 @@ from __future__ import absolute_import, unicode_literals
 
 from os import environ
 
-from xmpp import Client, JID, Message, NS_MUC, Presence
+from xmpp import Client, Iq, JID, Message, NS_MUC, Presence
 
 from hal.adapter import Adapter as HalAdapter
 from hal.messages import TextMessage
@@ -34,11 +34,17 @@ class Adapter(HalAdapter):
 
 		self.connection = connection = self.create_connection(configuration)
 		self.connect_to_rooms(connection, configuration)
-		connection.RegisterHandler('message', self.handle_message)
+
+		for type, handler in (('message', self.handle_message), ('iq', self.handle_iq)):
+			connection.RegisterHandler(type, handler)
+
 		connection.sendInitPresence()
 
 		while True:
 			connection.Process(1)
+
+			# to keep the connection alive
+			connection.send(' ')
 
 	def create_connection(self, configuration):
 		jid = JID(configuration.jid)
@@ -68,11 +74,20 @@ class Adapter(HalAdapter):
 
 	def handle_message(self, session, message):
 		sender, text = message.getFrom(), message.getBody()
+		room, name = sender.getNode(), sender.getResource()
 
-		if text:
-			room, name = sender.getNode(), sender.getResource()
+		if text and name != self.bot.name:
 			user = User(id = name, name = name, room = room)
 			self.receive(TextMessage(user, text))
+
+	def handle_iq(self, session, iq):
+		children = iq.getChildren()
+
+		# Respond to pings so server doesn't kick us
+		if iq.getType() == 'get' and children and children[0].getName() == 'ping':
+			response = Iq(to = iq.getFrom(), frm = iq.getTo(), typ = 'result')
+			response.setId(iq.getId())
+			session.send(response)
 
 	def send(self, envelope, text):
 		message = Message(to = JID('%s@%s' % (envelope.room, self.configuration.conference_server)),
