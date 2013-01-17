@@ -28,6 +28,11 @@ As you can see, there are 2 command line parameters (both optional):
 * ``name`` - the name under which bot appears in chatrooms
 * ``adapter`` - chat adapter to use
 
+There's also a builtin HTTP server which can be used by plugins to offer some functions, it's configuration consists of the following variables:
+
+* ``HAL_HTTP_HOST`` - what address to bind listening socket to (``0.0.0.0`` listens on all interfaces, ``127.0.0.1`` allows access only from local machine), default: ``127.0.0.1``
+* ``HAL_HTTP_PORT`` - port to listen on, default: ``8888``
+
 ### Adapters
 
 Adapter takes care of bot's communication with event source and destination (in general - some chat room).

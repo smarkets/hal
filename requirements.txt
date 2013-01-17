@@ -2,3 +2,4 @@ git+git://github.com/alecthomas/injector.git@40fe9979138dc7c0b2eeeeec5aec9b88982
 pydns
 xmpppy
 requests
+flask

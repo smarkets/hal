@@ -3,6 +3,11 @@ from __future__ import absolute_import, unicode_literals
 
 import re
 
+from os import environ
+from threading import Thread, RLock
+from time import sleep
+
+from flask import Flask
 from injector import inject
 
 from hal.listeners import TextListener
@@ -11,10 +16,28 @@ from hal.plugin import PluginModuleCollector
 class Bot(object):
 	def __init__(self, name):
 		self.name = name
+		self.web = Flask(__name__)
+		self.lock = RLock()
 
 	def run(self):
 		self._reload_plugins()
-		self.adapter.run()
+		self._run_threads()
+
+	def _run_threads(self):
+		for target in (self.adapter.run, self._web_task):
+			thread = Thread(target = target)
+			thread.daemon = True
+			thread.start()
+
+		try:
+			while True:
+				sleep(0.1)
+		except KeyboardInterrupt:
+			print('Exiting')
+
+	def _web_task(self):
+		self.web.run(host = environ.get('HAL_HTTP_HOST') or '127.0.0.1',
+			port = int(environ.get('HAL_HTTP_PORT') or 8888))
 		
 	@inject(plugin_module_collector = PluginModuleCollector)
 	def _reload_plugins(self, plugin_module_collector):
@@ -72,10 +95,12 @@ class Bot(object):
 			listener(message)
 
 	def send(self, envelope, message):
-		self.adapter.send(envelope, message)
+		with self.lock:
+			self.adapter.send(envelope, message)
 
 	def reply(self, envelope, message):
-		self.adapter.reply(envelope, message)
+		with self.lock:
+			self.adapter.reply(envelope, message)
 
 	@property
 	def commands_help(self):
