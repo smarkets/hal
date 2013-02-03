@@ -1,13 +1,17 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, unicode_literals
 
+import logging
 from os import environ
+from time import sleep
 
 from xmpp import Client, Iq, JID, Message, NS_MUC, Presence
 
 from hal.adapter import Adapter as HalAdapter
 from hal.messages import TextMessage
 from hal.user import User
+
+log = logging.getLogger()
 
 
 class JabberConfiguration(object):
@@ -24,6 +28,14 @@ class JabberConfiguration(object):
 
 class Adapter(HalAdapter):
 	def run(self):
+		while True:
+			try:
+				self._run()
+			except Exception as e:
+				log.warn('%s, reconnecting...' % (e,))
+			sleep(5)
+
+	def _run(self):
 		configuration = JabberConfiguration(
 			jid = environ['HAL_JABBER_JID'],
 			password = environ['HAL_JABBER_PASSWORD'],
