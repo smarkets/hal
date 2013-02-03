@@ -12,7 +12,8 @@ def plugin(bot):
 
 		regexp = response.match.group(1)
 		if regexp:
-			commands = [c for c in commands if regexp.match(c)]
+			regexp = re.compile(regexp)
+			commands = [c for c in commands if regexp.search(c)]
 
 		commands_text = '\n'.join(commands)
 		commands_text = re.sub(r'\bhal\b', bot.name, commands_text,
