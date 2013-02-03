@@ -7,8 +7,9 @@ from os import environ
 from threading import Thread, RLock
 from time import sleep
 
-from flask import Flask
-from injector import inject
+from flask import Blueprint, Flask
+from flask.ext.injector import FlaskModule, InjectorView
+from injector import inject, Injector
 
 from hal.listeners import TextListener
 from hal.plugin import PluginModuleCollector
@@ -16,7 +17,7 @@ from hal.plugin import PluginModuleCollector
 class Bot(object):
 	def __init__(self, name):
 		self.name = name
-		self.web = Flask(__name__)
+		self.web = Blueprint(__name__, __name__)
 		self.lock = RLock()
 
 	def run(self):
@@ -39,8 +40,19 @@ class Bot(object):
 		except KeyboardInterrupt:
 			print('Exiting')
 
-	def _web_task(self):
-		self.web.run(host = environ.get('HAL_HTTP_HOST') or '127.0.0.1',
+	@inject(injector = Injector)
+	def _web_task(self, injector):
+		app = Flask(__name__)
+		app.register_blueprint(self.web)
+
+		injector.binder.install(FlaskModule(app, [], []))
+
+		for endpoint, view in app.view_functions.iteritems():
+				injector_aware_view = InjectorView.as_view(endpoint,
+					handler=view, injector=injector)
+				app.view_functions[endpoint] = injector_aware_view
+
+		app.run(host = environ.get('HAL_HTTP_HOST') or '127.0.0.1',
 			port = int(environ.get('HAL_HTTP_PORT') or 8888))
 		
 	@inject(plugin_module_collector = PluginModuleCollector)
