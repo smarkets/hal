@@ -24,13 +24,17 @@ class Bot(object):
 		self._run_threads()
 
 	def _run_threads(self):
-		for target in (self.adapter.run, self._web_task):
-			thread = Thread(target = target)
-			thread.daemon = True
-			thread.start()
+		tasks = dict(adapter = self.adapter.run, web = self._web_task)
+		threads = dict((key, Thread(target = value)) for (key, value) in tasks.items())
+		for t in threads.values():
+			t.daemon = True
+			t.start()
+
+		def all_alive():
+			return all(t.is_alive() for t in threads.values())
 
 		try:
-			while True:
+			while all_alive():
 				sleep(0.1)
 		except KeyboardInterrupt:
 			print('Exiting')
