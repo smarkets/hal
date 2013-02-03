@@ -4,3 +4,4 @@ pydns
 xmpppy
 requests
 flask
+PyExecJS
