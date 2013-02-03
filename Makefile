@@ -1,12 +1,9 @@
-.PHONY: all build_virtualenv
+.PHONY: all virtualenv
 
-run: virtualenv
-	PYTHONPATH=. ./env/bin/python main.py
+virtualenv: ./env/requirements.built
 
-virtualenv: requirements.built
-
-requirements.built: requirements.txt
+./env/requirements.built: requirements.txt
 	rm -rf env
 	virtualenv --distribute env
 	./env/bin/pip install -r requirements.txt
-	cp requirements.txt requirements.built
+	cp requirements.txt ./env/requirements.built
