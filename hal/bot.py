@@ -6,6 +6,7 @@ import re
 from os import environ
 from threading import Thread, RLock
 from time import sleep
+from traceback import format_exc
 
 from flask import Blueprint, Flask
 from flask.ext.injector import FlaskModule, InjectorView
@@ -13,6 +14,7 @@ from injector import inject, Injector
 
 from hal.listeners import TextListener
 from hal.plugin import PluginModuleCollector
+from hal.response import Envelope
 
 class Bot(object):
 	def __init__(self, name):
@@ -108,7 +110,15 @@ class Bot(object):
 
 	def receive(self, message):
 		for listener in self._listeners:
+			self._try_message_on_listener(message, listener)
+
+	def _try_message_on_listener(self, message, listener):
+		try:
 			listener(message)
+		except Exception as e:
+			tb = format_exc()
+			response = 'Error processing %r:\n\n' % (message,) + tb
+			self.send(Envelope(message.user, message.room), response)
 
 	def send(self, envelope, message):
 		with self.lock:

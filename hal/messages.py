@@ -11,6 +11,12 @@ class TextMessage(Message):
 		super(TextMessage, self).__init__(user)
 		self.text = text
 
+	def __unicode__(self):
+		return self.text
+
+	def __repr__(self):
+		return str('%s(user = %r, text = %r)' % (self.__class__.__name__, self.user, self.text))
+
 class EnterMessage(Message): pass
 
 class LeaveMessage(Message): pass
