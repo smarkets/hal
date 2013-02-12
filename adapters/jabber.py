@@ -32,7 +32,7 @@ class Adapter(HalAdapter):
 			try:
 				self._run()
 			except Exception as e:
-				log.warn('%s, reconnecting...' % (e,))
+				log.exception('%s, reconnecting...' % (e,))
 			sleep(5)
 
 	def _run(self):
