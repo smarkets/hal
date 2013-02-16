@@ -1,3 +1,5 @@
+import re
+
 from pprint import pformat
 from random import choice
 
@@ -26,15 +28,21 @@ memes = {
 		'http://assets0.ordienetworks.com/images/GifGuide/DealWithIt/Terminator-deal-with-it.gif',
 		'http://static.fjcdn.com/gifs/Deal_614cb5_2356571.gif',
 	),
-
+	'o ?rly\??': 'http://i.imgur.com/a7bmz.jpg',
+	'ya,? ?rly!?': 'http://images.wikia.com/uncyclopedia/images/3/33/Yarly.jpg',
+	'no ?wai[!1]*': 'http://files.myopera.com/drlaunch/albums/37656/no-wai001.jpg',
 }
 
 def plugin(bot):
 	def get_meme(name):
-		meme = memes[name.strip().lower()]
-		if not isinstance(meme, basestring):
-			meme = choice(meme)
-		return meme
+		for key, value in memes.items():
+			if re.match(key.lower().strip(), name):
+				if isinstance(value, basestring):
+					return value
+				else:
+					return choice(value)
+
+		raise KeyError
 
 	@bot.hear('(.+)$')
 	def show_meme(response):
