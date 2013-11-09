@@ -7,6 +7,7 @@ import requests
 
 local_wats = (
 	'http://s.telegraph.co.uk/graphics/html/Years/2013/images/owl4.gif',
+	'https://s3-eu-west-1.amazonaws.com/alex-random/rella.gif',
 )
 
 def plugin(bot):
