@@ -1,0 +1,16 @@
+language: python
+python:
+    - "2.7"
+    - "3.3"
+    - "3.4"
+    - "pypy"
+matrix:
+    allow_failures:
+        - python: "3.3"
+        - python: "3.4"
+        - python: "pypy"
+    fast_finish: true
+install:
+    - pip install flake8 flake8-blind-except
+script:
+    - flake8 --max-line-length=110 hal plugins adapters
