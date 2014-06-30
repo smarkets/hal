@@ -2,6 +2,7 @@ git+git://github.com/alecthomas/injector.git@fc3ca9037e52fe0daecb92e802681785ebd
 git+git://github.com/alecthomas/flask_injector.git@7d585466db5022c175c074baa795d68e2a575db3
 pydns
 xmpppy==0.5.0rc1
+simplejson
 requests
 flask
 PyExecJS
