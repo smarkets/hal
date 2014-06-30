@@ -16,118 +16,120 @@ from hal.listeners import TextListener
 from hal.plugin import PluginModuleCollector
 from hal.response import Envelope
 
+
 class Bot(object):
-	def __init__(self, name):
-		self.name = name
-		self.web = Blueprint(__name__, __name__)
-		self.lock = RLock()
 
-	def run(self):
-		self._reload_plugins()
-		self._run_threads()
+    def __init__(self, name):
+        self.name = name
+        self.web = Blueprint(__name__, __name__)
+        self.lock = RLock()
 
-	def _run_threads(self):
-		tasks = dict(adapter = self.adapter.run, web = self._web_task)
-		threads = dict((key, Thread(target = value)) for (key, value) in tasks.items())
-		for t in threads.values():
-			t.daemon = True
-			t.start()
+    def run(self):
+        self._reload_plugins()
+        self._run_threads()
 
-		def all_alive():
-			return all(t.is_alive() for t in threads.values())
+    def _run_threads(self):
+        tasks = dict(adapter=self.adapter.run, web=self._web_task)
+        threads = dict((key, Thread(target=value)) for (key, value) in tasks.items())
+        for t in threads.values():
+            t.daemon = True
+            t.start()
 
-		try:
-			while all_alive():
-				sleep(0.1)
-		except KeyboardInterrupt:
-			print('Exiting')
+        def all_alive():
+            return all(t.is_alive() for t in threads.values())
 
-	@inject(injector = Injector)
-	def _web_task(self, injector):
-		app = Flask(__name__)
-		app.register_blueprint(self.web)
+        try:
+            while all_alive():
+                sleep(0.1)
+        except KeyboardInterrupt:
+            print('Exiting')
 
-		injector.binder.install(FlaskModule(app, [], []))
+    @inject(injector=Injector)
+    def _web_task(self, injector):
+        app = Flask(__name__)
+        app.register_blueprint(self.web)
 
-		for endpoint, view in app.view_functions.iteritems():
-				injector_aware_view = InjectorView.as_view(endpoint,
-					handler=view, injector=injector)
-				app.view_functions[endpoint] = injector_aware_view
+        injector.binder.install(FlaskModule(app, [], []))
 
-		app.run(host = environ.get('HAL_HTTP_HOST') or '127.0.0.1',
-			port = int(environ.get('HAL_HTTP_PORT') or 8888))
-		
-	@inject(plugin_module_collector = PluginModuleCollector)
-	def _reload_plugins(self, plugin_module_collector):
-		self._listeners = []
-		self._commands_help = []
-		modules = plugin_module_collector.collect()
-		for m in modules:
-			m.plugin(self)
-			try:
-				commands = [c.strip() for c in m.__commands__.splitlines() if c.strip()]
-				self._commands_help.extend(commands)
-			except AttributeError:
-				pass
+        for endpoint, view in app.view_functions.iteritems():
+            injector_aware_view = InjectorView.as_view(endpoint,
+                                                       handler=view, injector=injector)
+            app.view_functions[endpoint] = injector_aware_view
 
-		self._commands_help.sort()
+        app.run(host=environ.get('HAL_HTTP_HOST') or '127.0.0.1',
+                port=int(environ.get('HAL_HTTP_PORT') or 8888))
 
-	def hear(self, regexp, callback = None):
-		if callback is None:
-			def decorator(function):
-				self.hear(regexp, function)
-				return function
-			return decorator
-		else:
-			self._listeners.append(TextListener(self, self._regexp_object(regexp), callback))
+    @inject(plugin_module_collector=PluginModuleCollector)
+    def _reload_plugins(self, plugin_module_collector):
+        self._listeners = []
+        self._commands_help = []
+        modules = plugin_module_collector.collect()
+        for m in modules:
+            m.plugin(self)
+            try:
+                commands = [c.strip() for c in m.__commands__.splitlines() if c.strip()]
+                self._commands_help.extend(commands)
+            except AttributeError:
+                pass
 
-	def respond(self, regexp, callback = None):
-		if callback is None:
-			def decorator(function):
-				self.respond(regexp, function)
-				return function
-			return decorator
-		else:
-			pattern, flags = self._regexp_pattern_and_flags(regexp)
-			assert not pattern.startswith('^')
+        self._commands_help.sort()
 
-			new_regexp = re.compile(r'^%s[:,]?\s*(?:%s)' % (self.name, pattern,), flags)
-			self._listeners.append(TextListener(self, new_regexp, callback))
+    def hear(self, regexp, callback=None):
+        if callback is None:
+            def decorator(function):
+                self.hear(regexp, function)
+                return function
+            return decorator
+        else:
+            self._listeners.append(TextListener(self, self._regexp_object(regexp), callback))
 
-	def _regexp_object(self, regexp):
-		if not hasattr(regexp, 'match'):
-			regexp = re.compile(regexp, re.IGNORECASE)
+    def respond(self, regexp, callback=None):
+        if callback is None:
+            def decorator(function):
+                self.respond(regexp, function)
+                return function
+            return decorator
+        else:
+            pattern, flags = self._regexp_pattern_and_flags(regexp)
+            assert not pattern.startswith('^')
 
-		return regexp
+            new_regexp = re.compile(r'^%s[:,]?\s*(?:%s)' % (self.name, pattern,), flags)
+            self._listeners.append(TextListener(self, new_regexp, callback))
 
-	def _regexp_pattern_and_flags(self, regexp):
-		if hasattr(regexp, 'match'):
-			pattern, flags = regexp.pattern, regexp.flags
-		else:
-			pattern, flags = regexp, re.IGNORECASE
+    def _regexp_object(self, regexp):
+        if not hasattr(regexp, 'match'):
+            regexp = re.compile(regexp, re.IGNORECASE)
 
-		return pattern, flags
+        return regexp
 
-	def receive(self, message):
-		for listener in self._listeners:
-			self._try_message_on_listener(message, listener)
+    def _regexp_pattern_and_flags(self, regexp):
+        if hasattr(regexp, 'match'):
+            pattern, flags = regexp.pattern, regexp.flags
+        else:
+            pattern, flags = regexp, re.IGNORECASE
 
-	def _try_message_on_listener(self, message, listener):
-		try:
-			listener(message)
-		except Exception as e:
-			tb = format_exc()
-			response = 'Error processing %r:\n\n' % (message,) + tb
-			self.send(Envelope(message.user, message.room), response)
+        return pattern, flags
 
-	def send(self, envelope, message):
-		with self.lock:
-			self.adapter.send(envelope, message)
+    def receive(self, message):
+        for listener in self._listeners:
+            self._try_message_on_listener(message, listener)
 
-	def reply(self, envelope, message):
-		with self.lock:
-			self.adapter.reply(envelope, message)
+    def _try_message_on_listener(self, message, listener):
+        try:
+            listener(message)
+        except Exception:
+            tb = format_exc()
+            response = 'Error processing %r:\n\n' % (message,) + tb
+            self.send(Envelope(message.user, message.room), response)
 
-	@property
-	def commands_help(self):
-		return self._commands_help
+    def send(self, envelope, message):
+        with self.lock:
+            self.adapter.send(envelope, message)
+
+    def reply(self, envelope, message):
+        with self.lock:
+            self.adapter.reply(envelope, message)
+
+    @property
+    def commands_help(self):
+        return self._commands_help
