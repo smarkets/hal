@@ -3,7 +3,6 @@ from __future__ import absolute_import, unicode_literals
 
 import logging
 from os import environ
-from time import sleep
 
 from xmpp import Client, Iq, JID, Message, NS_MUC, Presence
 
@@ -16,38 +15,53 @@ log = logging.getLogger()
 
 class JabberConfiguration(object):
 
-    def __init__(self, jid, password, conference_server, rooms, server=None):
-        self.jid = jid
+    def __init__(self, user, domain, password, conference_server, rooms, server):
+        self.user = user
+        self.domain = domain
         self.password = password
         self.rooms = rooms
-
-        jid = JID(jid)
-        self.user = jid.getNode()
-        self.server = server or jid.getDomain()
-
-        self.conference_server = conference_server or 'conference.%s' % (self.server,)
+        self.server = server
+        self.conference_server = conference_server
 
 
 class Adapter(HalAdapter):
 
     def run(self):
-        while True:
-            try:
-                self._run()
-            except Exception as e:
-                log.exception('%s, reconnecting...' % (e,))
-            sleep(5)
+        self.configuration = self._gather_configuration()
+        self._run(self.configuration)
 
-    def _run(self):
-        configuration = JabberConfiguration(
-            jid=environ['HAL_JABBER_JID'],
+    def _gather_configuration(self):
+        raw_jid = environ['HAL_JABBER_JID']
+        jid = JID(raw_jid)
+
+        domain = jid.getDomain()
+
+        port = 5223
+        try:
+            parts = environ['HAL_JABBER_SERVER']
+        except KeyError:
+            host = domain
+        else:
+            parts = parts.split(':')
+            try:
+                host, port = parts
+            except ValueError:
+                (host,) = parts
+            else:
+                port = int(port)
+
+        server = (host, int(port))
+
+        return JabberConfiguration(
+            user=jid.getNode(),
+            domain=domain,
             password=environ['HAL_JABBER_PASSWORD'],
             rooms=environ['HAL_JABBER_ROOMS'].split(','),
-            conference_server=environ.get('HAL_JABBER_CONFERENCE_SERVER'),
-            server=environ.get('HAL_JABBER_SERVER'),
+            conference_server=environ.get('HAL_JABBER_CONFERENCE_SERVER') or 'conference.%s' % (domain,),
+            server=server,
         )
-        self.configuration = configuration
 
+    def _run(self, configuration):
         self.connection = connection = self.create_connection(configuration)
         self.connect_to_rooms(connection, configuration)
 
@@ -63,18 +77,25 @@ class Adapter(HalAdapter):
             connection.send(' ')
 
     def create_connection(self, configuration):
-        jid = JID(configuration.jid)
-        user, server, password = jid.getNode(), jid.getDomain(), configuration.password
+        connection = Client(configuration.domain)
+        connection_result = connection.connect(server=configuration.server)
+        server = configuration.server
 
-        connection = Client(server)
-        connection_result = connection.connect()
         if not connection_result:
             raise Exception('Unable to connect to %s' % (server,))
 
-        if connection_result != 'tls':
-            raise Exception('No TLS support when connecting to %s' % (server,))
+        if connection_result not in ('ssl', 'tls'):
+            raise Exception('No SSL/TLS support when connecting to %s' % (server,))
 
-        auth_result = connection.auth(user=user, password=password, resource=user)
+        user = configuration.user
+        password = configuration.password
+
+        auth_result = connection.auth(
+            user=user,
+            password=password,
+            resource=user,
+        )
+
         if not auth_result:
             raise Exception('Unable to authenticate %s@%s with %s' % (user, server, '*' * len(password)))
 
