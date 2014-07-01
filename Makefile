@@ -2,8 +2,10 @@
 
 virtualenv: ./env/requirements.built
 
-./env/requirements.built: requirements.txt
-	virtualenv --distribute env
+env:
+	virtualenv env
+
+./env/requirements.built: env requirements.txt
 	./env/bin/pip install -r requirements.txt
 	cp requirements.txt ./env/requirements.built
 
