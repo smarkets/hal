@@ -16,14 +16,14 @@ log = logging.getLogger()
 
 class JabberConfiguration(object):
 
-    def __init__(self, jid, password, conference_server, rooms):
+    def __init__(self, jid, password, conference_server, rooms, server=None):
         self.jid = jid
         self.password = password
         self.rooms = rooms
 
         jid = JID(jid)
         self.user = jid.getNode()
-        self.server = jid.getDomain()
+        self.server = server or jid.getDomain()
 
         self.conference_server = conference_server or 'conference.%s' % (self.server,)
 
@@ -44,6 +44,7 @@ class Adapter(HalAdapter):
             password=environ['HAL_JABBER_PASSWORD'],
             rooms=environ['HAL_JABBER_ROOMS'].split(','),
             conference_server=environ.get('HAL_JABBER_CONFERENCE_SERVER'),
+            server=environ.get('HAL_JABBER_SERVER'),
         )
         self.configuration = configuration
 
