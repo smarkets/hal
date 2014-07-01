@@ -11,6 +11,6 @@ matrix:
         - python: "pypy"
     fast_finish: true
 install:
-    - pip install flake8 flake8-blind-except
+    - pip install -r requirements.txt
 script:
-    - flake8 --max-line-length=110 hal plugins adapters
+    - make flake8
