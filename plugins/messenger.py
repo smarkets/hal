@@ -1,3 +1,8 @@
+import socket
+from os import environ
+from threading import Thread
+
+import simplejson as json
 from injector import inject
 from flask import Request
 
@@ -26,3 +31,30 @@ def plugin(bot):
 
         method(envelope, message)
         return 'ok'
+
+    try:
+        address = environ['HAL_MESSENGER_UDP_ADDRESS']
+    except KeyError:
+        pass
+    else:
+        address = address.split(':')
+        address = (address[0], int(address[1]))
+        receive_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        receive_socket.bind(address)
+
+        def loop():
+            while True:
+                encoded_message, address = receive_socket.recvfrom(60000)
+                try:
+                    message = json.loads(encoded_message)
+                    room = message['room']
+                    message_text = message['message']
+                except Exception:
+                    pass
+                else:
+                    envelope = Envelope(user=None, room=room)
+                    bot.send(envelope, message_text)
+
+        thread = Thread(target=loop)
+        thread.daemon = True
+        thread.start()
