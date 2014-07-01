@@ -7,7 +7,7 @@ def plugin(bot):
     bot.hear('ping$', 'pong')
     bot.respond('ping$', lambda response: response.reply('pong'))
     bot.respond('hi|hello$',
-                lambda response: 'Oh hello there %s!' % (response.user.name))
+                lambda response: 'Oh hello there %s!' % (response.envelope.user.name))
 
     @bot.web.route('/ping')
     def ping():
