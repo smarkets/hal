@@ -127,7 +127,7 @@ class Adapter(HalAdapter):
         # Respond to pings so server doesn't kick us
         if iq.getType() == 'get' and children and children[0].getName() == 'ping':
             response = Iq(to=iq.getFrom(), frm=iq.getTo(), typ='result')
-            response.setId(iq.getId())
+            response.setId(iq.getID())
             session.send(response)
 
     def send(self, envelope, text):
