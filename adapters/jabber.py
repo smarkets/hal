@@ -4,7 +4,7 @@ from __future__ import absolute_import, unicode_literals
 import logging
 from os import environ
 
-from xmpp import Client, Iq, JID, Message, NS_MUC, Presence
+from xmpp import Client, Iq, JID, Message, NS_MUC, Presence, NodeProcessed
 
 from hal.adapter import Adapter as HalAdapter
 from hal.messages import TextMessage
@@ -126,6 +126,7 @@ class Adapter(HalAdapter):
             response = Iq(to=iq.getFrom(), frm=iq.getTo(), typ='result')
             response.setID(iq.getID())
             session.send(response)
+            raise NodeProcessed
 
     def send(self, envelope, text):
         message = Message(to=JID('%s@%s' % (envelope.room, self.configuration.conference_server)),
