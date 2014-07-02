@@ -36,7 +36,11 @@ class Adapter(HalAdapter):
 
         domain = jid.getDomain()
 
-        port = 5223
+        try:
+            port = environ['HAL_JABBER_SERVER_PORT']
+        except KeyError:
+            port = 5222
+
         try:
             parts = environ['HAL_JABBER_SERVER']
         except KeyError:
