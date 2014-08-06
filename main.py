@@ -14,20 +14,20 @@ from hal.bot import Bot
 from hal.modules import ApplicationModule
 
 if __name__ == '__main__':
-	root_logger = logging.getLogger()
-	root_logger.addHandler(logging.StreamHandler())
-	root_logger.level = logging.DEBUG
+    root_logger = logging.getLogger()
+    root_logger.addHandler(logging.StreamHandler())
+    root_logger.level = logging.DEBUG
 
-	parser = ArgumentParser(description = 'HAL bot')
-	parser.add_argument('--adapter', dest = 'adapter', default = 'shell')
-	parser.add_argument('--name', dest = 'name', default = 'HAL')
-	arguments = parser.parse_args()
+    parser = ArgumentParser(description='HAL bot')
+    parser.add_argument('--adapter', dest='adapter', default='shell')
+    parser.add_argument('--name', dest='name', default='HAL')
+    arguments = parser.parse_args()
 
-	injector = Injector([ApplicationModule])
-	bot_builder = injector.get(AssistedBuilder(Bot))
-	bot = bot_builder.build(name = arguments.name)
+    injector = Injector([ApplicationModule])
+    bot_builder = injector.get(AssistedBuilder(Bot))
+    bot = bot_builder.build(name=arguments.name)
 
-	adapter_module = load_source('adapter', join(PROJECT_ROOT, 'adapters',
-		'%s.py' % (arguments.adapter,)))
-	bot.adapter = adapter_module.Adapter(bot)
-	bot.run()
+    adapter_module = load_source('adapter', join(PROJECT_ROOT, 'adapters',
+                                                 '%s.py' % (arguments.adapter,)))
+    bot.adapter = adapter_module.Adapter(bot)
+    bot.run()

@@ -10,4 +10,4 @@ env:
 	cp requirements.txt ./env/requirements.built
 
 flake8:
-	flake8 --max-line-length=110 hal plugins adapters
+	flake8 --max-line-length=110 hal plugins adapters *.py
