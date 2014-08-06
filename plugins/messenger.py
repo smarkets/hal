@@ -22,6 +22,10 @@ def plugin(bot):
             user = None
 
         message = request.form['message']
+        forward(room, message, user)
+        return 'ok'
+
+    def forward(room, message, user):
         envelope = Envelope(user=user, room=room)
 
         if user:
@@ -30,7 +34,6 @@ def plugin(bot):
             method = bot.send
 
         method(envelope, message)
-        return 'ok'
 
     try:
         address = environ['HAL_MESSENGER_UDP_ADDRESS']
@@ -52,8 +55,7 @@ def plugin(bot):
                 except Exception:
                     pass
                 else:
-                    envelope = Envelope(user=None, room=room)
-                    bot.send(envelope, message_text)
+                    forward(room, message_text, None)
 
         thread = Thread(target=loop)
         thread.daemon = True
