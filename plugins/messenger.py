@@ -1,4 +1,5 @@
 import socket
+import sys
 from os import environ
 from threading import Thread
 
@@ -8,6 +9,18 @@ from flask import Request
 
 from hal.response import Envelope
 from hal.user import User
+
+
+def exit_after_finished(fun, exit_code_fun=lambda error: 1 if error else 0):
+    def wrapper(*args, **kwargs):
+        try:
+            fun(*args, **kwargs)
+            error = None
+        except Exception as e:
+            error = e
+        finally:
+            exit_code = exit_code_fun(error)
+            sys.exit(exit_code)
 
 
 def plugin(bot):
@@ -57,6 +70,6 @@ def plugin(bot):
                 else:
                     forward(room, message_text, None)
 
-        thread = Thread(target=loop)
+        thread = Thread(target=exit_after_finished(fun=loop))
         thread.daemon = True
         thread.start()
