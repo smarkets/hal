@@ -21,6 +21,7 @@ def exit_after_finished(fun, exit_code_fun=lambda error: 1 if error else 0):
         finally:
             exit_code = exit_code_fun(error)
             sys.exit(exit_code)
+    return wrapper
 
 
 def plugin(bot):
