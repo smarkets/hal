@@ -25,12 +25,16 @@ class Bot(object):
         self.lock = RLock()
 
     def run(self):
+        threads = self._start_threads()
         self._reload_plugins()
-        self._run_threads()
+        self._block_until_any_thread_dies(threads)
 
-    def _run_threads(self):
+    def _start_threads(self):
         tasks = dict(adapter=self.adapter.run, web=self._web_task)
         threads = dict((key, Thread(target=value)) for (key, value) in tasks.items())
+        return threads
+
+    def _block_until_any_thread_dies(self, threads):
         for t in threads.values():
             t.daemon = True
             t.start()
