@@ -4,7 +4,7 @@ from __future__ import absolute_import, unicode_literals
 import logging
 from os import environ
 
-from xmpp import Client, Iq, JID, Message, NodeProcessed, NS_MUC, Presence
+from xmpp import Client, Iq, JID, Message, NodeProcessed, NS_MUC, Presence, simplexml
 
 from hal.adapter import Adapter as HalAdapter
 from hal.events import TextEvent
@@ -130,5 +130,12 @@ class Adapter(HalAdapter):
 
     def send(self, envelope, content):
         message = Message(to=JID('%s@%s' % (envelope.room, self.configuration.conference_server)),
-                          body=content.raw, typ='groupchat')
+                          typ='groupchat', body=content.raw)
+        html = simplexml.Node('html', {'xmlns': 'http://jabber.org/protocol/xhtml-im'})
+        html.addChild(node=simplexml.XML2Node(
+            "<body xmlns='http://www.w3.org/1999/xhtml'>" +
+            content.html +
+            "</body>"
+        ))
+        message.addChild(node=html)
         self.connection.send(message)
