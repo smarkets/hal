@@ -10,8 +10,8 @@ __commands__ = '''
 memes = {
     'if you know what I mean':
     'http://dc472.4shared.com/img/BNqKbMOh/s7/if_you_know_what_i_mean_mr_bea.jpg',
-    'how about no': 'http://sfcitizen.com/blog/wp-content/uploads/2010/04/how-about-no-bear.jpg',
-    'deal with it': (
+    'how about no$': 'http://sfcitizen.com/blog/wp-content/uploads/2010/04/how-about-no-bear.jpg',
+    'deal with it$': (
         'http://www.roflcat.com/images/cats/Deal_With_It.jpg',
         'http://www.evilmilk.com/pictures/Deal_With_It91.jpg',
         'http://www.the-online-book.com/wp-content/uploads/2012/06/deal-with-it-cat.jpg',
