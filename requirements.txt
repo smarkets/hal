@@ -5,6 +5,7 @@ xmpppy==0.5.0rc1
 simplejson
 requests
 flask
-flake8
+flake8==2.2.2
 flake8-blind-except
+flake8-import-order
 PyExecJS

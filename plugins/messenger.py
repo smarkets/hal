@@ -4,8 +4,8 @@ from os import environ
 from threading import Thread
 
 import simplejson as json
-from injector import inject
 from flask import Request
+from injector import inject
 
 from hal.response import Envelope
 from hal.user import User

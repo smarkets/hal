@@ -4,7 +4,7 @@ from __future__ import absolute_import, unicode_literals
 import logging
 from os import environ
 
-from xmpp import Client, Iq, JID, Message, NS_MUC, Presence, NodeProcessed
+from xmpp import Client, Iq, JID, Message, NodeProcessed, NS_MUC, Presence
 
 from hal.adapter import Adapter as HalAdapter
 from hal.messages import TextMessage

@@ -4,7 +4,7 @@ from __future__ import absolute_import, unicode_literals
 import re
 
 from os import environ
-from threading import Thread, RLock
+from threading import RLock, Thread
 from time import sleep
 from traceback import format_exc
 
