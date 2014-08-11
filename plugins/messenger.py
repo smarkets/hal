@@ -7,6 +7,7 @@ import simplejson as json
 from flask import Request
 from injector import inject
 
+from hal.outgoing_content import OutgoingContent
 from hal.response import Envelope
 from hal.user import User
 
@@ -25,7 +26,6 @@ def exit_after_finished(fun, exit_code_fun=lambda error: 1 if error else 0):
 
 
 def plugin(bot):
-    @bot.web.route('/talk', methods=['POST'])
     @inject(request=Request)
     def talk(request):
         room = request.form['room']
@@ -38,6 +38,24 @@ def plugin(bot):
         message = request.form['message']
         forward(room, message, user)
         return 'ok'
+
+    def decode(encoded_message):
+        """
+        :return: room, user and content
+        """
+        message = json.loads(encoded_message)
+        room = message['room']
+        try:
+            user_name = message['user']
+        except KeyError:
+            user = None
+        else:
+            user = User(name=user_name, room=room)
+
+        raw_content = message.get('raw_message') or message.get('message')
+        html_content = message.get('html_message')
+        content = OutgoingContent.guess_from_maybe_raw_and_html(raw_content, html_content)
+        return room, user, content
 
     def forward(room, message, user):
         envelope = Envelope(user=user, room=room)
@@ -63,13 +81,11 @@ def plugin(bot):
             while True:
                 encoded_message, address = receive_socket.recvfrom(60000)
                 try:
-                    message = json.loads(encoded_message)
-                    room = message['room']
-                    message_text = message['message']
+                    room, user, content = decode(encoded_message)
                 except Exception:
                     pass
                 else:
-                    forward(room, message_text, None)
+                    forward(room, content, user)
 
         thread = Thread(target=exit_after_finished(fun=loop))
         thread.daemon = True

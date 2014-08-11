@@ -39,3 +39,14 @@ class OutgoingContent(object):
         :type html: unicode string
         """
         return cls(raw, html)
+
+    @classmethod
+    def guess_from_maybe_raw_and_html(cls, raw, html):
+        assert raw or html
+
+        if raw and not html:
+            return cls.create_from_raw(raw)
+        elif not raw and html:
+            return cls.create_from_html(html)
+        else:
+            return cls.create_from_raw_and_html(raw, html)
