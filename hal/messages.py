@@ -20,11 +20,3 @@ class TextMessage(Message):
 
     def __repr__(self):
         return str('%s(user=%r, text=%r)' % (self.__class__.__name__, self.user, self.text))
-
-
-class EnterMessage(Message):
-    pass
-
-
-class LeaveMessage(Message):
-    pass

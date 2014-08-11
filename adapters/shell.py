@@ -2,7 +2,7 @@
 from __future__ import absolute_import, print_function, unicode_literals
 
 from hal.adapter import Adapter as HalAdapter
-from hal.messages import EnterMessage, TextMessage
+from hal.messages import TextMessage
 from hal.user import User
 
 
@@ -13,7 +13,6 @@ class Adapter(HalAdapter):
 
     def run(self):
         user = User(id=1, name='shell', room='shell')
-        self.receive(EnterMessage(user))
         done = False
         while not done:
             try:
