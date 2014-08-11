@@ -31,7 +31,7 @@ def plugin(bot):
         room = request.form['room']
         name = request.form.get('user') or None
         if name:
-            user = User(id=name, name=name, room=room)
+            user = User(name=name, room=room)
         else:
             user = None
 

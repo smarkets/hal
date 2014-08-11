@@ -115,7 +115,7 @@ class Adapter(HalAdapter):
         room, name = sender.getNode(), sender.getResource()
 
         if text and name != self.bot.name:
-            user = User(id=name, name=name, room=room)
+            user = User(name=name, room=room)
             self.receive(TextEvent(user, text))
 
     def handle_iq(self, session, iq):

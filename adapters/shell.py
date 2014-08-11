@@ -13,7 +13,7 @@ class Adapter(HalAdapter):
         print('HTML: %s' % (content.html,))
 
     def run(self):
-        user = User(id=1, name='shell', room='shell')
+        user = User(name='shell', room='shell')
         done = False
         while not done:
             try:
