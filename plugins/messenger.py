@@ -1,3 +1,4 @@
+import logging
 import socket
 import sys
 from os import environ
@@ -8,6 +9,8 @@ import simplejson as json
 from hal.outgoing_content import OutgoingContent
 from hal.response import Envelope
 from hal.user import User
+
+log = logging.getLogger(__name__)
 
 
 def exit_after_finished(fun, exit_code_fun=lambda error: 1 if error else 0):
@@ -68,8 +71,8 @@ def plugin(bot):
                 encoded_message, address = receive_socket.recvfrom(60000)
                 try:
                     room, user, content = decode(encoded_message)
-                except Exception:
-                    pass
+                except Exception as e:
+                    log.exception('Cannot process message %r: %r', encoded_message, e)
                 else:
                     forward(room, content, user)
 
