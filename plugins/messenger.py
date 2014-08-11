@@ -1,7 +1,7 @@
 import logging
 import socket
-import sys
 from os import environ
+from thread import interrupt_main
 from threading import Thread
 
 import simplejson as json
@@ -13,16 +13,15 @@ from hal.user import User
 log = logging.getLogger(__name__)
 
 
-def exit_after_finished(fun, exit_code_fun=lambda error: 1 if error else 0):
+def exit_after_finished(fun):
     def wrapper(*args, **kwargs):
         try:
             fun(*args, **kwargs)
-            error = None
+            log.error('%r exited', fun)
         except Exception as e:
-            error = e
+            log.exception('%r exited with %r', fun, e)
         finally:
-            exit_code = exit_code_fun(error)
-            sys.exit(exit_code)
+            interrupt_main()
     return wrapper
 
 
