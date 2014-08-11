@@ -18,8 +18,8 @@ class Response(object):
 
         self.envelope = Envelope(message.user, message.room)
 
-    def send(self, *messages):
-        self.bot.send(self.envelope, *messages)
+    def send(self, message):
+        self.bot.send(self.envelope, message)
 
-    def reply(self, *messages):
-        self.bot.reply(self.envelope, *messages)
+    def reply(self, message):
+        self.bot.reply(self.envelope, message)
