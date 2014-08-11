@@ -132,10 +132,10 @@ class Adapter(HalAdapter):
         message = Message(to=JID('%s@%s' % (envelope.room, self.configuration.conference_server)),
                           typ='groupchat', body=content.raw)
         html = simplexml.Node('html', {'xmlns': 'http://jabber.org/protocol/xhtml-im'})
-        html.addChild(node=simplexml.XML2Node(
+        html.addChild(node=simplexml.XML2Node((
             "<body xmlns='http://www.w3.org/1999/xhtml'>" +
             content.html +
             "</body>"
-        ))
+        ).encode('utf-8')))
         message.addChild(node=html)
         self.connection.send(message)
