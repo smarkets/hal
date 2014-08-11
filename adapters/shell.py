@@ -8,8 +8,9 @@ from hal.user import User
 
 class Adapter(HalAdapter):
 
-    def send(self, envelope, text):
-        print(text)
+    def send(self, envelope, content):
+        print('Raw: %s' % (content.raw,))
+        print('HTML: %s' % (content.html,))
 
     def run(self):
         user = User(id=1, name='shell', room='shell')

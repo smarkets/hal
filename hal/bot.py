@@ -13,6 +13,7 @@ from flask.ext.injector import FlaskModule, InjectorView
 from injector import inject, Injector
 
 from hal.listeners import TextListener
+from hal.outgoing_content import OutgoingContent
 from hal.plugin import PluginModuleCollector
 from hal.response import Envelope
 
@@ -126,13 +127,26 @@ class Bot(object):
             response = 'Error processing %r:\n\n' % (message,) + tb
             self.send(Envelope(message.user, message.room), response)
 
-    def send(self, envelope, message):
+    def send(self, envelope, content):
+        """
+        :type content: :class:`hal.outgoing_content.OutgoingContent` or unicode string
+        """
+        content = self._wrap_content_if_needed(content)
         with self.lock:
-            self.adapter.send(envelope, message)
+            self.adapter.send(envelope, content)
 
-    def reply(self, envelope, message):
+    def reply(self, envelope, content):
+        """
+        :type content: :class:`hal.outgoing_content.OutgoingContent` or unicode string
+        """
+        content = self._wrap_content_if_needed(content)
         with self.lock:
-            self.adapter.reply(envelope, message)
+            self.adapter.reply(envelope, content)
+
+    def _wrap_content_if_needed(self, content):
+        if not isinstance(content, OutgoingContent):
+            content = OutgoingContent.create_from_raw(content)
+        return content
 
     @property
     def commands_help(self):

@@ -7,14 +7,16 @@ class Adapter(object):
     def __init__(self, bot):
         self.bot = bot
 
-    def send(self, envelope, text):
-        '''
-        '''
+    def send(self, envelope, content):
+        """
+        :type content: :class:`hal.outgoing_content.OutgoingContent`
+        """
 
-    def reply(self, envelope, text):
-        '''
-        '''
-        self.send(envelope, '%s: %s' % (envelope.user.name, text))
+    def reply(self, envelope, content):
+        """
+        :type content: :class:`hal.outgoing_content.OutgoingContent`
+        """
+        self.send(envelope, content.prepended('%s: ' % (envelope.user.name,)))
 
     def run(self):
         '''

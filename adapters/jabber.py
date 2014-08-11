@@ -128,7 +128,7 @@ class Adapter(HalAdapter):
             session.send(response)
             raise NodeProcessed
 
-    def send(self, envelope, text):
+    def send(self, envelope, content):
         message = Message(to=JID('%s@%s' % (envelope.room, self.configuration.conference_server)),
-                          body=text, typ='groupchat')
+                          body=content.raw, typ='groupchat')
         self.connection.send(message)
