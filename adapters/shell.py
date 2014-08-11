@@ -2,7 +2,7 @@
 from __future__ import absolute_import, print_function, unicode_literals
 
 from hal.adapter import Adapter as HalAdapter
-from hal.messages import TextMessage
+from hal.events import TextEvent
 from hal.user import User
 
 
@@ -17,6 +17,6 @@ class Adapter(HalAdapter):
         while not done:
             try:
                 line = raw_input('%s >>> ' % (self.bot.name,))
-                self.receive(TextMessage(user, line))
+                self.receive(TextEvent(user, line))
             except EOFError:
                 done = True

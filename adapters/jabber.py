@@ -7,7 +7,7 @@ from os import environ
 from xmpp import Client, Iq, JID, Message, NodeProcessed, NS_MUC, Presence
 
 from hal.adapter import Adapter as HalAdapter
-from hal.messages import TextMessage
+from hal.events import TextEvent
 from hal.user import User
 
 log = logging.getLogger()
@@ -116,7 +116,7 @@ class Adapter(HalAdapter):
 
         if text and name != self.bot.name:
             user = User(id=name, name=name, room=room)
-            self.receive(TextMessage(user, text))
+            self.receive(TextEvent(user, text))
 
     def handle_iq(self, session, iq):
         children = iq.getChildren()

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, unicode_literals
 
-from hal.messages import TextMessage
+from hal.events import TextEvent
 from hal.response import Response
 
 
@@ -29,7 +29,7 @@ class TextListener(Listener):
 
     def __init__(self, bot, regexp, callback):
         def match(message):
-            if isinstance(message, TextMessage):
+            if isinstance(message, TextEvent):
                 return regexp.match(message.text)
 
         super(TextListener, self).__init__(bot, match, callback)

@@ -20,5 +20,5 @@ class Adapter(object):
         '''
         '''
 
-    def receive(self, message):
-        self.bot.receive(message)
+    def receive(self, event):
+        self.bot.receive(event)
