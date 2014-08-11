@@ -33,12 +33,9 @@ def plugin(bot):
         """
         message = json.loads(encoded_message)
         room = message['room']
-        try:
-            user_name = message['user']
-        except KeyError:
-            user = None
-        else:
-            user = User(name=user_name, room=room)
+
+        user_name = message.get('user')
+        user = User(name=user_name, room=room) if user_name else None
 
         raw_content = message.get('raw_message') or message.get('message')
         html_content = message.get('html_message')
