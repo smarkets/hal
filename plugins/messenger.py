@@ -4,8 +4,6 @@ from os import environ
 from threading import Thread
 
 import simplejson as json
-from flask import Request
-from injector import inject
 
 from hal.outgoing_content import OutgoingContent
 from hal.response import Envelope
@@ -26,18 +24,6 @@ def exit_after_finished(fun, exit_code_fun=lambda error: 1 if error else 0):
 
 
 def plugin(bot):
-    @inject(request=Request)
-    def talk(request):
-        room = request.form['room']
-        name = request.form.get('user') or None
-        if name:
-            user = User(name=name, room=room)
-        else:
-            user = None
-
-        message = request.form['message']
-        forward(room, message, user)
-        return 'ok'
 
     def decode(encoded_message):
         """
