@@ -9,7 +9,7 @@ from time import sleep
 from traceback import format_exc
 
 from flask import Blueprint, Flask
-from flask.ext.injector import FlaskModule, InjectorView
+from flask_injector import FlaskModule, InjectorView
 from injector import inject, Injector
 
 from hal.listeners import TextListener
