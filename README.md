@@ -53,4 +53,5 @@ Required environment variables:
 
 Optional environment variables:
 
-* ``HAL_JABBER_CONFERENCE_SERVER`` - please specify if conference server is different than ``conference.JABBERIDSERVER``
+* ``HAL_JABBER_CONFERENCE_SERVER`` - Specify if conference server is different than ``conference.JABBERIDSERVER``
+* ``HAL_PLUGIN_DIRECTORIES`` - Directory to load other plugins from 
