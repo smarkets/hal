@@ -19,4 +19,4 @@ class TextEvent(Event):
         self.text = text
 
     def __repr__(self):
-        return '%s(user=%r, text=%r)' % (self.__class__.__name__, self.user, self.text).encode('utf-8')
+        return ('%s(user=%r, text=%r)' % (self.__class__.__name__, self.user, self.text)).encode('utf-8')

@@ -33,6 +33,9 @@ There's also a builtin HTTP server which can be used by plugins to offer some fu
 * ``HAL_HTTP_HOST`` - what address to bind listening socket to (``0.0.0.0`` listens on all interfaces, ``127.0.0.1`` allows access only from local machine), default: ``127.0.0.1``
 * ``HAL_HTTP_PORT`` - port to listen on, default: ``8888``
 
+
+* ``HAL_PLUGIN_DIRECTORIES`` - Directory to load other plugins from 
+
 ### Adapters
 
 Adapter takes care of bot's communication with event source and destination (in general - some chat room).
@@ -54,4 +57,11 @@ Required environment variables:
 Optional environment variables:
 
 * ``HAL_JABBER_CONFERENCE_SERVER`` - Specify if conference server is different than ``conference.JABBERIDSERVER``
-* ``HAL_PLUGIN_DIRECTORIES`` - Directory to load other plugins from 
+
+#### Slack
+
+Provides bot support for slack chat rooms.
+
+Required environment variables:
+
+* ``HAL_SLACK_TOKEN`` - API token for the slack bot.

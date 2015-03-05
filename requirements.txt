@@ -9,3 +9,4 @@ flake8==2.2.2
 flake8-blind-except
 flake8-import-order
 PyExecJS
+slackclient==0.14
