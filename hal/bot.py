@@ -98,7 +98,7 @@ class Bot(object):
             pattern, flags = self._regexp_pattern_and_flags(regexp)
             assert not pattern.startswith('^')
 
-            new_regexp = re.compile(r'^%s[:,]?\s*(?:%s)' % (self.name, pattern,), flags)
+            new_regexp = re.compile(r'^@?%s[:,]?\s*(?:%s)' % (self.name, pattern,), flags)
             self._listeners.append(TextListener(self, new_regexp, callback))
 
     def _regexp_object(self, regexp):
