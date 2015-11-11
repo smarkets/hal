@@ -2,6 +2,7 @@ __commands__ = '''
     hal (youtube|yt) [me] <query> - shows link to random top video matching query on YouTube
 '''
 
+import os
 import random
 
 import requests
@@ -17,6 +18,10 @@ def plugin(bot):
             'alt': 'json',
             'q': query,
         })
+        if result.status_code != 200:
+            response.send('Query failed with HTTP %s' % (result.status_code,))
+            return
+
         videos = result.json()['feed']['entry']
         video = random.choice(videos)
         links = [link['href'] for link in video['link']
