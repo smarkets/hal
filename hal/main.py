@@ -1,6 +1,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import logging
+import os
 
 from argparse import ArgumentParser
 from imp import load_source
@@ -27,7 +28,8 @@ def main():
     bot_builder = injector.get(AssistedBuilder(Bot))
     bot = bot_builder.build(name=arguments.name)
 
-    adapter_module = load_source('adapter', join(PROJECT_ROOT, 'adapters',
+    adapter_directory = os.environ.get('HAL_ADAPTER_DIRECTORY', join(PROJECT_ROOT, 'adapters'))
+    adapter_module = load_source('adapter', join(adapter_directory,
                                                  '%s.py' % (arguments.adapter,)))
     bot.adapter = adapter_module.Adapter(bot)
     bot.run()

@@ -35,6 +35,7 @@ There's also a builtin HTTP server which can be used by plugins to offer some fu
 
 
 * ``HAL_PLUGIN_DIRECTORIES`` - Directory to load other plugins from 
+* ``HAL_ADAPTER_DIRECTORY`` - Directory to load adapters from
 
 ### Adapters
 
