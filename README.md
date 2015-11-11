@@ -34,7 +34,7 @@ There's also a builtin HTTP server which can be used by plugins to offer some fu
 * ``HAL_HTTP_PORT`` - port to listen on, default: ``8888``
 
 
-* ``HAL_PLUGIN_DIRECTORIES`` - Directory to load other plugins from 
+* ``HAL_PLUGIN_DIRECTORIES`` - Directories to load other plugins from 
 * ``HAL_ADAPTER_DIRECTORY`` - Directory to load adapters from
 
 ### Adapters
