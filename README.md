@@ -58,11 +58,3 @@ Required environment variables:
 Optional environment variables:
 
 * ``HAL_JABBER_CONFERENCE_SERVER`` - Specify if conference server is different than ``conference.JABBERIDSERVER``
-
-#### Slack
-
-Provides bot support for slack chat rooms.
-
-Required environment variables:
-
-* ``HAL_SLACK_TOKEN`` - API token for the slack bot.
