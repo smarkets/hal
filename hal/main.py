@@ -28,8 +28,25 @@ def main():
     bot_builder = injector.get(AssistedBuilder(Bot))
     bot = bot_builder.build(name=arguments.name)
 
-    adapter_directory = os.environ.get('HAL_ADAPTER_DIRECTORY', join(PROJECT_ROOT, 'adapters'))
-    adapter_module = load_source('adapter', join(adapter_directory,
-                                                 '%s.py' % (arguments.adapter,)))
-    bot.adapter = adapter_module.Adapter(bot)
+    _attach_adapter(bot, arguments.adapter)
     bot.run()
+
+
+def _attach_adapter(bot, adapter_name):
+    directories = _get_adapter_directories()
+    candidates = [join(d, '%s.py' % (adapter_name,)) for d in directories]
+    existing_files = [f for f in candidates if os.path.isfile(f)]
+    if not existing_files:
+        raise RuntimeError(
+            'No adapter %s found in %s' % (adapter_name, ':'.join(directories)),
+        )
+    the_best_choice = existing_files[0]
+    adapter_module = load_source('adapter', the_best_choice)
+    bot.adapter = adapter_module.Adapter(bot)
+
+
+def _get_adapter_directories():
+    return (
+        os.environ.get('HAL_ADAPTER_DIRECTORIES', '').split(':') +
+        [join(PROJECT_ROOT, 'adapters')]
+    )
