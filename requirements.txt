@@ -7,5 +7,5 @@ requests
 flask
 flake8==2.2.2
 flake8-blind-except
-flake8-import-order
+flake8-import-order==0.5.3
 PyExecJS
