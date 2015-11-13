@@ -1,10 +1,10 @@
-__commands__ = '''
-    wat - provides link to random WAT image
-'''
-
 import random
 
 import requests
+
+__commands__ = '''
+    wat - provides link to random WAT image
+'''
 
 local_wats = (
     'http://s.telegraph.co.uk/graphics/html/Years/2013/images/owl4.gif',

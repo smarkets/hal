@@ -1,9 +1,9 @@
+import re
+
 __commands__ = '''
     hal help - displays help for all available commands
     hal help <pattern> - displays help for all commands matching pattern
 '''
-
-import re
 
 
 def plugin(bot):

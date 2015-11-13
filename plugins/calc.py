@@ -1,10 +1,10 @@
+import execjs
+import requests
+
 __commands__ = '''
     hal (calc|calculate) [me] <expression> - calculates the expression
     hal (calc|calculate|convert) [me] <expression> (to|in) <units> - converts expression to specified units
 '''
-
-import execjs
-import requests
 
 
 def plugin(bot):

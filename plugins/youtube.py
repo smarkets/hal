@@ -4,14 +4,15 @@ This plugin requires the following environment variable to be set:
 * YOUTUBE_API_KEY - YouTube V3 API application key
 """
 
-__commands__ = '''
-    hal (youtube|yt) [me] <query> - shows link to random top video matching query on YouTube
-'''
-
 import os
 import random
 
 import requests
+
+
+__commands__ = '''
+    hal (youtube|yt) [me] <query> - shows link to random top video matching query on YouTube
+'''
 
 
 def plugin(bot):
