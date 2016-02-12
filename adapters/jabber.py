@@ -4,7 +4,7 @@ from __future__ import absolute_import, unicode_literals
 import logging
 from os import environ
 
-from xmpp import Client, Iq, JID, Message, NodeProcessed, NS_MUC, Presence, simplexml
+from sleekxmpp import ClientXMPP
 
 from hal.adapter import Adapter as HalAdapter
 from hal.events import TextEvent
@@ -15,9 +15,8 @@ log = logging.getLogger()
 
 class JabberConfiguration(object):
 
-    def __init__(self, user, domain, password, conference_server, rooms, server):
-        self.user = user
-        self.domain = domain
+    def __init__(self, jid, password, conference_server, rooms, server):
+        self.jid = jid
         self.password = password
         self.rooms = rooms
         self.server = server
@@ -31,10 +30,9 @@ class Adapter(HalAdapter):
         self._run(self.configuration)
 
     def _gather_configuration(self):
-        raw_jid = environ['HAL_JABBER_JID']
-        jid = JID(raw_jid)
+        jid = environ['HAL_JABBER_JID']
 
-        domain = jid.getDomain()
+        _, domain = jid.split('@')
 
         port = 5222
 
@@ -54,8 +52,7 @@ class Adapter(HalAdapter):
         server = (host, int(port))
 
         return JabberConfiguration(
-            user=jid.getNode(),
-            domain=domain,
+            jid=jid,
             password=environ['HAL_JABBER_PASSWORD'],
             rooms=environ['HAL_JABBER_ROOMS'].split(','),
             conference_server=environ.get('HAL_JABBER_CONFERENCE_SERVER') or 'conference.%s' % (domain,),
@@ -63,79 +60,63 @@ class Adapter(HalAdapter):
         )
 
     def _run(self, configuration):
-        self.connection = connection = self.create_connection(configuration)
-        self.connect_to_rooms(connection, configuration)
+        self.connection = connection = self.setup_connection(configuration)
 
-        for type, handler in (('message', self.handle_message), ('iq', self.handle_iq)):
-            connection.RegisterHandler(type, handler)
+        connection.process(block=True)
 
-        connection.sendInitPresence()
+    def setup_connection(self, configuration):
+        connection = ClientXMPP(configuration.jid, configuration.password)
 
-        while True:
-            connection.Process(1)
+        # xep_0045 MUC
+        # xep_0199 XMPP Ping
+        for plugin in ['xep_0045', 'xep_0199']:
+            connection.register_plugin(plugin)
 
-            # to keep the connection alive
-            connection.send(' ')
+        for type_, handler in (
+            ('session_start', self.handle_start),
+            ('groupchat_message', self.handle_message),
+        ):
+            connection.add_event_handler(type_, handler)
 
-    def create_connection(self, configuration):
-        connection = Client(configuration.domain)
-        connection_result = connection.connect(server=configuration.server)
+        connection_result = connection.connect(configuration.server)
         server = configuration.server
 
         if not connection_result:
             raise Exception('Unable to connect to %s' % (server,))
 
-        if connection_result not in ('ssl', 'tls'):
-            raise Exception('No SSL/TLS support when connecting to %s' % (server,))
-
-        user = configuration.user
-        password = configuration.password
-
-        auth_result = connection.auth(
-            user=user,
-            password=password,
-            resource=user,
-        )
-
-        if not auth_result:
-            raise Exception('Unable to authenticate %s@%s with %s' % (user, server, '*' * len(password)))
-
         return connection
 
     def connect_to_rooms(self, connection, configuration):
         for room in configuration.rooms:
-            p = Presence(to='%s@%s/%s' % (room, configuration.conference_server,
-                                          self.bot.name,))
-            p.setTag('x', namespace=NS_MUC).setTagData('password', '')
-            p.getTag('x').addChild('history', {'maxchars': '0', 'maxstanzas': '0'})
-            connection.send(p)
+            self.connection.plugin['xep_0045'].joinMUC(
+                '%s@%s' % (room, configuration.conference_server),
+                self.bot.name,
+                wait=True,
+            )
 
-    def handle_message(self, session, message):
-        sender, text = message.getFrom(), message.getBody()
-        room, name = sender.getNode(), sender.getResource()
+    def handle_start(self, event):
+        self.connection.send_presence()
+        self.connect_to_rooms(self.connection, self.configuration)
+
+    def handle_message(self, message):
+        text = message['body']
+        name = message['mucnick']
+        room = message['mucroom']
 
         if text and name != self.bot.name:
             user = User(name=name, room=room)
             self.receive(TextEvent(user, text))
 
-    def handle_iq(self, session, iq):
-        children = iq.getChildren()
-
-        # Respond to pings so server doesn't kick us
-        if iq.getType() == 'get' and children and children[0].getName() == 'ping':
-            response = Iq(to=iq.getFrom(), frm=iq.getTo(), typ='result')
-            response.setID(iq.getID())
-            session.send(response)
-            raise NodeProcessed
-
     def send(self, envelope, content):
-        message = Message(to=JID('%s@%s' % (envelope.room, self.configuration.conference_server)),
-                          typ='groupchat', body=content.raw)
-        html = simplexml.Node('html', {'xmlns': 'http://jabber.org/protocol/xhtml-im'})
-        html.addChild(node=simplexml.XML2Node((
-            "<body xmlns='http://www.w3.org/1999/xhtml'>" +
-            content.html +
-            "</body>"
-        ).encode('utf-8')))
-        message.addChild(node=html)
-        self.connection.send(message)
+        try:
+            _, _ = envelope.room.split('@')
+        except ValueError:
+            message_to = '%s@%s' % (envelope.room, self.configuration.conference_server)
+        else:
+            message_to = envelope.room
+
+        self.connection.send_message(
+            mto=message_to,
+            mbody=content.raw,
+            mtype='groupchat',
+        )
