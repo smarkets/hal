@@ -118,5 +118,6 @@ class Adapter(HalAdapter):
         self.connection.send_message(
             mto=message_to,
             mbody=content.raw,
+            mhtml=content.html,
             mtype='groupchat',
         )
